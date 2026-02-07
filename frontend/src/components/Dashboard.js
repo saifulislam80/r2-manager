@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { r2AccountAPI, r2OperationsAPI } from '../services/api';
@@ -33,40 +33,19 @@ const Dashboard = () => {
   // Notifications
   const [notification, setNotification] = useState(null);
 
-  // Load accounts on mount
-  useEffect(() => {
-    loadAccounts();
-  }, []);
-
-  // Load buckets when account selected
-  useEffect(() => {
-    if (selectedAccount) {
-      loadBuckets(selectedAccount.id);
-      setSelectedBucket(null);
-      setObjects([]);
-    }
-  }, [selectedAccount]);
-
-  // Load objects when bucket selected
-  useEffect(() => {
-    if (selectedAccount && selectedBucket) {
-      loadObjects(selectedAccount.id, selectedBucket);
-    }
-  }, [selectedAccount, selectedBucket]);
-
-  const showNotification = (message, type = 'success') => {
+  const showNotification = useCallback((message, type = 'success') => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 5000);
-  };
+  }, []);
 
-  const loadAccounts = async () => {
+  const loadAccounts = useCallback(async () => {
     try {
       const res = await r2AccountAPI.getAccounts();
       setAccounts(res.data.data);
     } catch (error) {
       showNotification('Failed to load accounts', 'error');
     }
-  };
+  }, [showNotification]);
 
   const addAccount = async (accountData) => {
     try {
@@ -95,7 +74,7 @@ const Dashboard = () => {
     }
   };
 
-  const loadBuckets = async (accountId) => {
+  const loadBuckets = useCallback(async (accountId) => {
     setLoading(true);
     try {
       const res = await r2OperationsAPI.listBuckets(accountId);
@@ -104,9 +83,9 @@ const Dashboard = () => {
       showNotification('Failed to load buckets', 'error');
     }
     setLoading(false);
-  };
+  }, [showNotification]);
 
-  const loadObjects = async (accountId, bucketName) => {
+  const loadObjects = useCallback(async (accountId, bucketName) => {
     setLoading(true);
     try {
       const res = await r2OperationsAPI.listObjects(accountId, bucketName);
@@ -115,7 +94,28 @@ const Dashboard = () => {
       showNotification('Failed to load files', 'error');
     }
     setLoading(false);
-  };
+  }, [showNotification]);
+
+  // Load accounts on mount
+  useEffect(() => {
+    loadAccounts();
+  }, [loadAccounts]);
+
+  // Load buckets when account selected
+  useEffect(() => {
+    if (selectedAccount) {
+      loadBuckets(selectedAccount.id);
+      setSelectedBucket(null);
+      setObjects([]);
+    }
+  }, [selectedAccount, loadBuckets]);
+
+  // Load objects when bucket selected
+  useEffect(() => {
+    if (selectedAccount && selectedBucket) {
+      loadObjects(selectedAccount.id, selectedBucket);
+    }
+  }, [selectedAccount, selectedBucket, loadObjects]);
 
   const handleDeleteObject = async () => {
     if (!deleteConfirm) return;
