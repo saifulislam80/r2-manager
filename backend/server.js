@@ -1,7 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 const rateLimit = require('express-rate-limit');
@@ -26,8 +25,6 @@ connectDB();
 // Initialize app
 const app = express();
 
-// Use Morgan for Development
-app.use(morgan('dev'));
 
 // Body parser
 app.use(express.json({ limit: '50mb' }));
