@@ -2,6 +2,9 @@
   "name": "r2-manager-auth-backend",
   "version": "2.0.0",
   "description": "Cloudflare R2 Manager with Authentication - Backend",
+  "engines": {
+    "node": "18.x"
+  },
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
